@@ -19,12 +19,12 @@ export class CatsResolver{
     }
 
     @Mutation(() => Cat)
-    async createCat(@Args('input') input: CreateCatDto) {
+    async createCat(@Args('CreateCatDto') input: CreateCatDto) {
         return this.catsService.create(input);
     }
 
     @Mutation (() => Cat)
-    async updateCat(@Args('id') id: string, @Args('input') input: UpdateCatDto) {
+    async updateCat(@Args('id') id: string, @Args('UpdateCatDto') input: UpdateCatDto) {
         return this.catsService.update(id, input);
   }
 }
