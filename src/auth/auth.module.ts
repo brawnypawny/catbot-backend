@@ -12,6 +12,7 @@ import { AuthGuard } from './auth.guard';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      
     }),
     UsersModule,
     JwtModule.register({

@@ -30,6 +30,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       driver: ApolloDriver,
       autoSchemaFile: true,
       playground: true,
+      context: ({ req }) => ({ req }),
      }),
 
    AuthModule,
