@@ -2,13 +2,26 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
-import { SignInDto } from './dto/signIn.dto';
+import { SignInDto } from './dto/sign-in.dto';
+import { RegisterUserDto } from './dto/register-user.dto';
+//import * as bcrypt from 'bcrypt';
+
+
+interface User {
+  id: string;
+  username: string;
+  password: string; // store as-is or hashed later
+}
 
 @Injectable()
 export class AuthService {
+  private users: User[] = [];
+
   constructor(
+    //@InjectRepository(User)
+    //private userRepository: Repository<User>,
     private usersService: UsersService,
-    private jwtService: JwtService
+    private jwtService: JwtService, 
   ) {}
 
   async signIn(
@@ -27,4 +40,28 @@ export class AuthService {
       access_token: await this.jwtService.signAsync(payload),
     };
   }
+
+
+    async register(dto: RegisterUserDto): Promise<User> {
+    const existing = this.users.find(user => user.username === dto.username);
+    if (existing) {
+      throw new Error('User already exists');
+    }
+
+    const newUser: User = {
+      id: Date.now().toString(),
+      username: dto.username, // Assuming username is used as email for simplicity
+      password: dto.password, // For real use, hash this!
+    };
+
+    this.users.push(newUser);
+    return newUser;
+  }
+
+
+    getUsers() {
+      return this.users;
+    }
+
+
 }
