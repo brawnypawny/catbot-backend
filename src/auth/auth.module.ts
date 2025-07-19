@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { UsersModule } from '../users/users.module';
+import { UsersModule } from '../users/users.module'; 
 import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './auth.guard';
 import { AuthResolver } from './auth.resolver';
+import { User } from '../users/users.model';
+
 
 
 @Module({
@@ -22,7 +24,7 @@ import { AuthResolver } from './auth.resolver';
       signOptions: { expiresIn: '1000000000s' },   //delete if trouble 
     }),
   ],
-  providers: [ AuthService, AuthResolver,
+  providers: [ AuthService, AuthResolver, User,
   {
     provide: APP_GUARD,
     useClass: AuthGuard,

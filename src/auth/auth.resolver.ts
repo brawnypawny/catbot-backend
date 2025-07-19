@@ -15,6 +15,7 @@ export class AuthResolver {
     @Args('registerUserInput') registerUserInput: RegisterUserDto,
   ): Promise<string> {
     const user = await this.authService.register(registerUserInput);
-    return `User ${user.username} created with ID ${user.id}`;
+    console.log('User from register:', user);
+    return `User ${user.username} created with ID ${user._id}`;
   }
 }

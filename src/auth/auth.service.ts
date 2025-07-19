@@ -1,67 +1,56 @@
-
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
+import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { SignInDto } from './dto/sign-in.dto';
+import * as bcrypt from 'bcrypt';
 import { RegisterUserDto } from './dto/register-user.dto';
-//import * as bcrypt from 'bcrypt';
+import { SignInDto } from './dto/sign-in.dto';
+import { User, UserDocument } from '../users/user.schema';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 
-
-interface User {
-  id: string;
-  username: string;
-  password: string; // store as-is or hashed later
-}
 
 @Injectable()
 export class AuthService {
-  private users: User[] = [];
-
   constructor(
-    //@InjectRepository(User)
-    //private userRepository: Repository<User>,
-    private usersService: UsersService,
-    private jwtService: JwtService, 
+    private jwtService: JwtService,
+    @InjectModel(User.name) private userModel: Model<UserDocument>, 
   ) {}
 
-  async signIn(
-    username: string,
-    pass: string,
-  ): Promise<{ access_token: string }> {
-    console.log('AuthController signIn called with:', SignInDto);
-    const user = await this.usersService.findOne(username);
-      console.log('signIn: user found:', user); // Debugging line
-    if (user?.password !== pass) {
-      console.log('signIn: password mismatch');
-      throw new UnauthorizedException();
+  async signIn(username: string, password: string): Promise<{ access_token: string }> {
+    const user = await this.userModel.findOne({ username }).exec();
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
     }
-    const payload = { sub: user.userId, username: user.username };
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      throw new UnauthorizedException('Invalid password');
+    }
+
+    const payload = { sub: user._id, username: user.username };
     return {
       access_token: await this.jwtService.signAsync(payload),
     };
   }
 
-
-    async register(dto: RegisterUserDto): Promise<User> {
-    const existing = this.users.find(user => user.username === dto.username);
-    if (existing) {
-      throw new Error('User already exists');
+  async register(dto: RegisterUserDto): Promise<UserDocument> {
+    const existingUser = await this.userModel.findOne({ username: dto.username }).exec();
+    if (existingUser) {
+      throw new ConflictException('User already exists');
     }
 
-    const newUser: User = {
-      id: Date.now().toString(),
-      username: dto.username, // Assuming username is used as email for simplicity
-      password: dto.password, // For real use, hash this!
-    };
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-    this.users.push(newUser);
+    const newUser = new this.userModel({
+      username: dto.username,
+      password: hashedPassword,
+    });
+
+    await newUser.save();
     return newUser;
   }
 
-
-    getUsers() {
-      return this.users;
-    }
-
-
+  async getUsers(): Promise<User[]> {
+    return this.userModel.find().exec();
+  }
 }

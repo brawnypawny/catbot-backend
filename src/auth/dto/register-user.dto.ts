@@ -8,4 +8,5 @@ export class RegisterUserDto {
 
   @Field()
   password: string;
+
 }

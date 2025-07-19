@@ -11,21 +11,36 @@ import {
 import { AuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
 import { Public } from './decorator';
+import { RegisterUserDto } from './dto/register-user.dto';
+import { SignInDto } from './dto/sign-in.dto';
+import { User } from '../users/users.service'; 
+
+
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @Public() // this decorator allows this route to be accessed without authentication
+  @Public() //  decorator lets this route to be accessed without authentication
   @HttpCode(HttpStatus.OK)
   @Post('login')
-  signIn(@Body() signInDto: Record<string, any>) {
+  signIn(@Body() signInDto: SignInDto) {
     return this.authService.signIn(signInDto.username, signInDto.password);
   }
+
+
+
+  @Public() 
+  @Post('register')
+  register(@Body() registerUserDto: RegisterUserDto): Promise<User> {
+    return this.authService.register(registerUserDto);
+  }
+
 
   @UseGuards(AuthGuard)
   @Get('profile')
   getProfile(@Request() req) {
     return req.user;
   }
+
 }
