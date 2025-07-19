@@ -8,11 +8,13 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
 
+
 @Injectable()
 export class AuthService {
   constructor(
     private jwtService: JwtService,
     @InjectModel(User.name) private userModel: Model<UserDocument>, 
+
   ) {}
 
   async signIn(username: string, password: string): Promise<{ access_token: string }> {
@@ -21,6 +23,11 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
+
+
+    console.log('Trying to login with:', password);
+    console.log('Stored hash is:', user.password);
+    console.log('Match?', await bcrypt.compare(password, user.password));
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
@@ -33,6 +40,9 @@ export class AuthService {
     };
   }
 
+
+
+
   async register(dto: RegisterUserDto): Promise<UserDocument> {
     const existingUser = await this.userModel.findOne({ username: dto.username }).exec();
     if (existingUser) {
@@ -40,6 +50,8 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
+    console.log('Registering password:', dto.password);
+    console.log('Hashed:', hashedPassword);
 
     const newUser = new this.userModel({
       username: dto.username,

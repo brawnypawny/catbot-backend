@@ -1,43 +1,45 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import * as bcrypt from 'bcrypt';
 
-// real class/interface representing a user entity
-export type User = any;
+import { User } from './users.model'; // Should extend Document (see note below)
 
 @Injectable()
 export class UsersService {
+  constructor(
+    @InjectModel('User') private readonly userModel: Model<User>,
+  ) {}
 
+  async findOne(username: string): Promise<User | null> {
+    return this.userModel.findOne({ username }).exec();
+  }
 
-  //hardcoded
-  private readonly users = [
-    {
-      userId: 1,
-      username: 'john',
-      password: 'changeme',
-    },
-    {
-      userId: 2,
-      username: 'kelsey',
-      password: 'addmin',
-    },
-  ];
-
-
-
-  async findOne(username: string): Promise<User | undefined> {
-    return this.users.find(user => user.username === username);
+  async findById(userId: string): Promise<User> {
+    const user = await this.userModel.findById(userId).exec();
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+    return user;
   }
 
   async findAll(): Promise<User[]> {
-    return this.users;
+    return this.userModel.find().exec();
   }
 
   async createUser(username: string, password: string): Promise<User> {
-
     const existing = await this.findOne(username);
     if (existing) {
-      throw new Error("User already exists");
+      throw new ConflictException('User already exists');
     }
 
-  }
+    const hashedPassword = await bcrypt.hash(password, 10);
 
+    const newUser = new this.userModel({
+      username,
+      password: hashedPassword,
+    });
+
+    return newUser.save();
+  }
 }

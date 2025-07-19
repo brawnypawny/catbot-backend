@@ -13,8 +13,7 @@ import { AuthService } from './auth.service';
 import { Public } from './decorator';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { SignInDto } from './dto/sign-in.dto';
-import { User } from '../users/users.service'; 
-
+import { User } from '../users/users.model';
 
 
 @Controller('auth')
