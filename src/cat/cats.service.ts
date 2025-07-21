@@ -49,7 +49,7 @@ export class CatsService {
 
   async remove(id: string) {
     const cat = await this.catModel.findByIdAndDelete(id);
-    return { message: `Cat with ID ${id} deleted.` };
+    return `Cat with ID ${id} deleted.`;
   }
 
   async update(id: string, UpdateCatDto) {

@@ -27,4 +27,9 @@ export class CatsResolver{
     async updateCat(@Args('id') id: string, @Args('UpdateCatDto') input: UpdateCatDto) {
         return this.catsService.update(id, input);
   }
+
+    @Mutation(() => String)
+    async deleteCat(@Args('id') id: string): Promise<string> {
+        return this.catsService.remove(id);
+}
 }
